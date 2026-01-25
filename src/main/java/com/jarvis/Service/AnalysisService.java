@@ -1,12 +1,14 @@
 package com.jarvis.Service;
 import com.jarvis.Analyzer.Core.JavaCodeParser;
 import com.jarvis.Analyzer.Core.RuleEngine;
+import com.jarvis.Analyzer.PMD.PmdAnalyzer;
 import com.jarvis.Model.Entity.AnalysisResult;
 import com.jarvis.Model.Entity.CodeFile;
 import com.jarvis.Model.Entity.CodeProblem;
 import com.github.javaparser.ast.CompilationUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.sourceforge.pmd.PmdAnalysis;
 import org.springframework.stereotype.Service;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -24,6 +26,7 @@ import java.util.zip.ZipInputStream;
 public class AnalysisService {
     private final JavaCodeParser javaCodeParser;
     private final RuleEngine ruleEngine;
+    private final PmdAnalyzer pmd;
 
     public AnalysisResult analyzeJavaFile(String sourceFile, String fileName) {
         log.info("Analyzing Java File {}", fileName);
@@ -35,7 +38,10 @@ public class AnalysisService {
         }
 
         CompilationUnit ast = astOpt.get();
-        List<CodeProblem> problems = ruleEngine.analyze(ast, sourceFile, fileName);
+        List<CodeProblem> problems = new ArrayList<>();
+        problems.addAll(ruleEngine.analyze(ast, sourceFile, fileName));
+        problems.addAll(pmd.analyzeFile(sourceFile, fileName));
+
         String packageName = javaCodeParser.extractPackageName(ast)
                 .orElse("default");
         List<String> classNames = javaCodeParser.extractClassNames(ast);
@@ -62,7 +68,6 @@ public class AnalysisService {
             while ((entry = zis.getNextEntry()) != null) {
                 if (!entry.isDirectory() && entry.getName().endsWith(".java")) {
                     String content = new String(zis.readAllBytes(), StandardCharsets.UTF_8);
-
                     CodeFile codeFile = new CodeFile();
                     codeFile.setFileName(entry.getName());
                     codeFile.setSourceCode(content);
