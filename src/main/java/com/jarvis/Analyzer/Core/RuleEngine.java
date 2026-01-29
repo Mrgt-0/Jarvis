@@ -3,7 +3,7 @@ import com.jarvis.Analyzer.Visitors.EmptyCatchVisitor;
 import com.jarvis.Analyzer.Visitors.LongMethodVisitor;
 import com.jarvis.Analyzer.Visitors.SystemErrPrintVisitor;
 import com.jarvis.Analyzer.Visitors.SystemOutPrintVisitor;
-import com.jarvis.Model.Entity.CodeProblem;
+import com.jarvis.Model.DTO.CodeProblemDTO;
 import com.github.javaparser.ast.CompilationUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -23,8 +23,8 @@ public class RuleEngine {
         );
     }
 
-    public List<CodeProblem> analyze(CompilationUnit cu, String sourceCode, String fileName) {
-        List<CodeProblem> problems = new ArrayList<>();
+    public List<CodeProblemDTO> analyze(CompilationUnit cu, String sourceCode, String fileName) {
+        List<CodeProblemDTO> problems = new ArrayList<>();
         for (Class<? extends BaseASTVisitor> visitorClass : ruleVisitors) {
             try{
                 BaseASTVisitor visitor = visitorClass

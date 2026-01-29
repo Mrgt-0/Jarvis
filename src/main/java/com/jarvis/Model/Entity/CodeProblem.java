@@ -1,32 +1,29 @@
 package com.jarvis.Model.Entity;
-import com.jarvis.Model.Enum.ProblemSeverity;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "code_problems")
 @Data
-@Builder(toBuilder = true)
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class CodeProblem {
-    private String ruleId;
-    private String fileName;
-    private int line;
-    private int column;
-    private String snippet;
-    private String message;
-    private ProblemSeverity severity;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    public static CodeProblem of(String ruleId, String fileName, int line, int column, String snippet, String message) {
-        return CodeProblem.builder()
-                .ruleId(ruleId)
-                .fileName(fileName)
-                .line(line)
-                .column(column)
-                .snippet(snippet)
-                .message(message)
-                .severity(ProblemSeverity.MEDIUM)
-                .build();
-    }
+    @Column(name = "analysis_id")
+    private Long analysisId;
+    private String fileName;
+    @Column(name = "line_number")
+    private Integer line;
+    @Column(name = "column_number")
+    private Integer column;
+    private String message;
+    private String severity;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+    private String ruleId;
 }

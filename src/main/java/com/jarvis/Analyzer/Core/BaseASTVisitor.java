@@ -1,33 +1,35 @@
 package com.jarvis.Analyzer.Core;
-import com.jarvis.Model.Entity.CodeProblem;
+import com.jarvis.Model.DTO.CodeProblemDTO;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 public abstract class BaseASTVisitor extends VoidVisitorAdapter<Void> {
     protected final String sourceCode;
     protected final String fileName;
-    protected final List<CodeProblem> problems = new ArrayList<>();
+    protected final List<CodeProblemDTO> problems = new ArrayList<>();
 
     protected BaseASTVisitor(String sourceCode, String fileName) {
         this.sourceCode = sourceCode;
         this.fileName = fileName;
     }
 
-    protected List<CodeProblem> getProblems() {
+    protected List<CodeProblemDTO> getProblems() {
         return problems;
     }
 
-    protected CodeProblem createProblem(Node node, String ruleId, String fileName, String message) {
+    protected CodeProblemDTO createProblem(Node node, String ruleId, String fileName, String message) {
         int line = node.getRange().map(r -> r.begin.line).orElse(-1);
         int column = node.getRange().map(r -> r.begin.column).orElse(-1);
         String snippet = extractSnippet(node);
 
-        return CodeProblem.of(
-                ruleId, fileName,
-                line, column, snippet,
-                message
+        return new CodeProblemDTO(
+                fileName, line,
+                column, snippet,
+                message, "MEDIUM",
+                LocalDateTime.now(), ruleId
         );
     }
 

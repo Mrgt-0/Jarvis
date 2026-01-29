@@ -2,6 +2,8 @@ package com.jarvis.Analyzer.Core;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseResult;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.nodeTypes.NodeWithName;
+import com.github.javaparser.ast.nodeTypes.NodeWithSimpleName;
 import com.github.javaparser.resolution.TypeSolver;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
@@ -49,13 +51,13 @@ public class JavaCodeParser {
 
     public Optional<String> extractPackageName(CompilationUnit cu) {
         return cu.getPackageDeclaration()
-                .map(pd -> pd.getNameAsString());
+                .map(NodeWithName::getNameAsString);
     }
 
     public List<String> extractClassNames(CompilationUnit cu) {
         return cu.findAll(com.github.javaparser.ast.body.ClassOrInterfaceDeclaration.class)
                 .stream()
-                .map(c -> c.getNameAsString())
+                .map(NodeWithSimpleName::getNameAsString)
                 .collect(Collectors.toList());
     }
 }

@@ -1,7 +1,7 @@
 package com.jarvis.Analyzer.Visitors;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.jarvis.Analyzer.Core.BaseASTVisitor;
-import com.jarvis.Model.Entity.CodeProblem;
+import com.jarvis.Model.DTO.CodeProblemDTO;
 import java.util.List;
 
 public class SystemOutPrintVisitor extends BaseASTVisitor {
@@ -10,7 +10,7 @@ public class SystemOutPrintVisitor extends BaseASTVisitor {
     @Override
     public void visit(MethodCallExpr methodCall, Void ard){
         super.visit(methodCall, ard);
-        List<CodeProblem> problems = getProblems();
+        List<CodeProblemDTO> problems = getProblems();
         String methodName = methodCall.getNameAsString();
 
         if (!methodName.equals("print") &&
@@ -20,7 +20,6 @@ public class SystemOutPrintVisitor extends BaseASTVisitor {
         }
 
         String callText = methodCall.toString();
-
         if (callText.startsWith("System.out")) {
             problems.add(createProblem(methodCall,
                     "SYSTEM_OUT",

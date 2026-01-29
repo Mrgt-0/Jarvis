@@ -1,7 +1,6 @@
 package com.jarvis.Analyzer.Visitors;
-
 import com.jarvis.Analyzer.Core.BaseASTVisitor;
-import com.jarvis.Model.Entity.CodeProblem;
+import com.jarvis.Model.DTO.CodeProblemDTO;
 import com.github.javaparser.ast.stmt.CatchClause;
 
 public class EmptyCatchVisitor extends BaseASTVisitor {
@@ -12,7 +11,7 @@ public class EmptyCatchVisitor extends BaseASTVisitor {
     @Override
     public void visit(CatchClause catchClause, Void arg){
         if(catchClause.getBody().getStatements().isEmpty()){
-            CodeProblem codeProblem = createProblem(
+            CodeProblemDTO codeProblem = createProblem(
                     catchClause,
                     "EMPTY_CATCH",
                     fileName,

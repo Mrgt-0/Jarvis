@@ -1,5 +1,5 @@
 package com.jarvis.Analyzer.PMD;
-import com.jarvis.Model.Entity.CodeProblem;
+import com.jarvis.Model.DTO.CodeProblemDTO;
 import com.jarvis.Model.Enum.ProblemSeverity;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -9,7 +9,6 @@ import net.sourceforge.pmd.lang.java.JavaLanguageModule;
 import net.sourceforge.pmd.lang.rule.*;
 import net.sourceforge.pmd.reporting.RuleViolation;
 import org.springframework.stereotype.Service;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -38,17 +37,17 @@ public class PmdAnalyzer {
         }
     }
 
-    public List<CodeProblem> analyzeFile(String sourceCode, String fileName) {
+    public List<CodeProblemDTO> analyzeFile(String sourceCode, String fileName) {
         if (rules == null)
             return Collections.emptyList();
 
-        List<CodeProblem> problems = new ArrayList<>();
+        List<CodeProblemDTO> problems = new ArrayList<>();
 
         try {
             Path tempDir = Files.createTempDirectory("pmd_analysis_");
             Path tempFile = tempDir.resolve(fileName);
             Files.createDirectories(tempFile.getParent());
-            Files.write(tempFile, sourceCode.getBytes(StandardCharsets.UTF_8));
+            Files.writeString(tempFile, sourceCode);
 
             PmdAnalysis pmd = PmdAnalysis.create(config);
             pmd.addRuleSet(rules);
@@ -71,14 +70,14 @@ public class PmdAnalyzer {
         return problems;
     }
 
-    private CodeProblem convertViolation(RuleViolation violation, String fileName) {
-        return CodeProblem.builder()
+    private CodeProblemDTO convertViolation(RuleViolation violation, String fileName) {
+        return CodeProblemDTO.builder()
                 .ruleId("PMD_" + violation.getRule().getName())
                 .fileName(fileName)
                 .line(violation.getBeginLine())
                 .column(violation.getBeginColumn())
                 .message(violation.getDescription())
-                .severity(mapSeverity(violation.getRule().getPriority()))
+                .severity(mapSeverity(violation.getRule().getPriority()).toString()) //toString
                 .build();
     }
 
