@@ -19,12 +19,17 @@ public class ArchiveAnalysisOrchestrator {
     private final AnalysisStorageService storageService;
 
     public List<AnalysisResultDTO> analyzeArchive(ArchiveAnalysisRequestDTO request) {
+        if (request.getUser() == null)
+            throw new IllegalArgumentException("Пользователь не может быть null при анализе архива");
+
+        log.info("Начинаем анализ архива {} для пользователя {}",
+                request.getArchiveName(), request.getUser().getUsername());
+
         List<CodeFile> files = archiveProcessingService.extractJavaFilesFromZip(
                 request.getZipData(),
                 request.getArchiveName()
         );
-
-        log.info("Начинаем анализ {} файлов из архива {}", files.size(), request.getArchiveName());
+        log.info("Извлечено {} Java файлов из архива {}", files.size(), request.getArchiveName());
 
         List<AnalysisResultDTO> results = new ArrayList<>();
         int successCount = 0;
@@ -56,17 +61,17 @@ public class ArchiveAnalysisOrchestrator {
                 AnalysisResultDTO errorResult = AnalysisResultDTO.builder()
                         .fileName(file.getFileName())
                         .projectName(request.getProjectName())
+                        .user(request.getUser()) // Устанавливаем пользователя
                         .success(false)
                         .errorMessage("Критическая ошибка: " + e.getClass().getSimpleName())
                         .classNames(Collections.emptyList())
                         .problems(Collections.emptyList())
                         .build();
 
-                results.add(errorResult);
                 storageService.saveAnalysisResult(errorResult);
+                results.add(errorResult);
             }
         }
-
         log.info("Анализ архива завершен. Успешно: {}, с ошибками: {}, всего: {}",
                 successCount, errorCount, results.size());
 
@@ -82,6 +87,7 @@ public class ArchiveAnalysisOrchestrator {
                 AnalysisResultDTO errorResult = AnalysisResultDTO.builder()
                         .fileName(file.getFileName())
                         .projectName(request.getProjectName())
+                        .user(request.getUser())
                         .success(false)
                         .errorMessage("Файл пустой")
                         .classNames(Collections.emptyList())
@@ -98,6 +104,7 @@ public class ArchiveAnalysisOrchestrator {
             );
             AnalysisResultDTO result = fileAnalyzer.analyze(fileRequest);
             result.setProjectName(request.getProjectName());
+            result.setUser(request.getUser());
 
             if (result.getClassNames() == null)
                 result.setClassNames(new ArrayList<>());
@@ -107,7 +114,6 @@ public class ArchiveAnalysisOrchestrator {
             log.info("Файл {} проанализирован. Успешно: {}, проблем: {}",
                     file.getFileName(), result.getSuccess(), result.getProblems().size());
             storageService.saveAnalysisResult(result);
-
             return result;
 
         } catch (Exception e) {
@@ -116,6 +122,7 @@ public class ArchiveAnalysisOrchestrator {
             AnalysisResultDTO errorResult = AnalysisResultDTO.builder()
                     .fileName(file.getFileName())
                     .projectName(request.getProjectName())
+                    .user(request.getUser()) // Устанавливаем пользователя
                     .success(false)
                     .errorMessage("Ошибка анализа: " + e.getClass().getSimpleName() + " - " + e.getMessage())
                     .classNames(Collections.emptyList())

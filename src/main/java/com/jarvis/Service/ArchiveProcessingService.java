@@ -52,9 +52,8 @@ public class ArchiveProcessingService {
         try {
             String content = detectEncodingAndConvert(fileBytes);
             content = removeProblematicCharacters(content);
-            if (!isLikelyValidJava(content)) {
+            if (!isLikelyValidJava(content))
                 log.warn("Файл {} не похож на валидный Java код", fileName);
-            }
             return content;
 
         } catch (Exception e) {
@@ -68,9 +67,8 @@ public class ArchiveProcessingService {
     private String detectEncodingAndConvert(byte[] bytes) {
         try {
             String utf8 = new String(bytes, StandardCharsets.UTF_8);
-            if (!utf8.contains("\uFFFD")) {
+            if (!utf8.contains("\uFFFD"))
                 return utf8;
-            }
         } catch (Exception ignored) {}
         try {
             return new String(bytes, StandardCharsets.ISO_8859_1);
@@ -84,17 +82,17 @@ public class ArchiveProcessingService {
         StringBuilder cleaned = new StringBuilder();
         for (int i = 0; i < content.length(); i++) {
             char c = content.charAt(i);
-            if (c == '\n' || c == '\r' || c == '\t') {
+            if (c == '\n' || c == '\r' || c == '\t')
                 cleaned.append(c);
-            } else if (c >= 32 && c <= 126) {
+            else if (c >= 32 && c <= 126)
                 cleaned.append(c);
-            } else if (c >= 1040 && c <= 1103) {
+            else if (c >= 1040 && c <= 1103)
                 cleaned.append(c);
-            } else if (c == 1025 || c == 1105) {
+            else if (c == 1025 || c == 1105)
                 cleaned.append(c);
-            } else if (c == '\uFFFD') {
+            else if (c == '\uFFFD')
                 cleaned.append(' ');
-            } else {
+            else {
                 if (Character.isLetterOrDigit(c) || Character.isWhitespace(c))
                     cleaned.append(c);
                 else

@@ -1,5 +1,4 @@
 package com.jarvis.Service;
-
 import com.jarvis.Model.DTO.AnalysisResultDTO;
 import com.jarvis.Model.Entity.AnalysisResult;
 import com.jarvis.Model.Entity.CodeProblem;
@@ -8,15 +7,11 @@ import com.jarvis.Repository.AnalysisResultRepository;
 import com.jarvis.Repository.CodeProblemRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,16 +27,18 @@ public class AnalysisStorageService {
     public void saveAnalysisResult(AnalysisResultDTO dto) {
         try {
             log.info("Сохранение анализа файла {} в БД...", dto.getFileName());
+            if (dto.getUser() == null)
+                throw new IllegalArgumentException("Нельзя сохранять анализ без пользователя. User не может быть null.");
+
             AnalysisResult entity = new AnalysisResult();
             entity.setProjectName(dto.getProjectName() != null ? dto.getProjectName() : "anonymous");
             entity.setFileName(dto.getFileName());
             entity.setPackageName(dto.getPackageName() != null ? dto.getPackageName() : "");
-
+            entity.setUser(dto.getUser());
             if (dto.getClassNames() != null)
                 entity.setClassNames(dto.getClassNames());
             else
                 entity.setClassNames(new ArrayList<>());
-
 
             entity.setSuccess(dto.getSuccess() != null ? dto.getSuccess() : false);
             entity.setErrorMessage(dto.getErrorMessage() != null ? dto.getErrorMessage() : "");

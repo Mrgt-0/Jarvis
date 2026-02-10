@@ -31,4 +31,8 @@ public class AnalysisResult {
     private String errorMessage;
     private LocalDateTime analysisTime;
     private Integer problemCount;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 }

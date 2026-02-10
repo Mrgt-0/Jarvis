@@ -1,11 +1,11 @@
 package com.jarvis.Model.DTO;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.jarvis.Model.Entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,6 +26,7 @@ public class AnalysisResultDTO {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime analysisTime;
     private Integer problemCount;
+    private User user;
 
     public static AnalysisResultDTO success(String fileName, String packageName,
                                             List<String> classNames, List<CodeProblemDTO> problems) {
