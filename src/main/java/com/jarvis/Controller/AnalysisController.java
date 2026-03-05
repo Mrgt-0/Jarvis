@@ -1,9 +1,7 @@
 package com.jarvis.Controller;
 import com.jarvis.Model.DTO.AnalysisResultDTO;
 import com.jarvis.Model.DTO.ArchiveAnalysisRequestDTO;
-import com.jarvis.Model.DTO.UserDTO;
 import com.jarvis.Model.Entity.User;
-import com.jarvis.Model.Mapper.UserMapper;
 import com.jarvis.Service.AnalysisService;
 import com.jarvis.Service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,10 +26,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Tag(name = "Анализ кода", description = "API для статического анализа Java кода")
 public class AnalysisController {
-
     private final AnalysisService analysisService;
     private final UserService userService;
-    private final UserMapper userMapper;
 
     @Operation(summary = "Анализировать Java файл")
     @PostMapping(value = "/file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
