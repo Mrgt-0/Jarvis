@@ -1,9 +1,6 @@
 package com.jarvis.Model.DTO;
 import com.jarvis.Model.Entity.User;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Data
 @Builder

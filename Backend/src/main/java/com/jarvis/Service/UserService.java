@@ -17,7 +17,8 @@ public class UserService {
     public void registerUser(UserDTO userDTO) {
         if (userRepository.existsByUsername(userDTO.getUsername()))
             throw new RuntimeException("Пользователь с таким именем уже существует");
-
+        if (userRepository.existsByEmail(userDTO.getEmail()))
+            throw new RuntimeException("Пользователь с таким email уже зарегистрирован");
         User user = new User();
         user.setUsername(userDTO.getUsername());
         user.setPassword(passwordEncoder.encode(userDTO.getPassword()));

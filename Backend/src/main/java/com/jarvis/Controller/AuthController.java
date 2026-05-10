@@ -1,12 +1,9 @@
 package com.jarvis.Controller;
-
 import com.jarvis.Model.DTO.UserDTO;
-import com.jarvis.Model.Mapper.UserMapper;
 import com.jarvis.Service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -44,10 +41,8 @@ public class AuthController {
             @RequestBody @Valid UserDTO userDTO
     ) {
         log.info("Попытка регистрации нового пользователя: {}", userDTO.getUsername());
-
         try {
             userService.registerUser(userDTO);
-
             UserDTO registeredUser = userService.findByUsername(userDTO.getUsername());
 
             Map<String, Object> response = new HashMap<>();
@@ -57,10 +52,8 @@ public class AuthController {
                     "username", registeredUser.getUsername(),
                     "email", registeredUser.getEmail()
             ));
-
             log.info("Пользователь {} успешно зарегистрирован", userDTO.getUsername());
             return ResponseEntity.ok(response);
-
         } catch (RuntimeException e) {
             log.error("Ошибка регистрации: {}", e.getMessage());
             return ResponseEntity
@@ -77,17 +70,13 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody UserDTO loginDTO, HttpSession session) {
         String username = loginDTO.getUsername();
         String password = loginDTO.getPassword();
-
         log.info("Попытка входа пользователя: {}", username);
 
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(username, password)
             );
-
             SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            // Сохраняем в сессию
             UserDTO user = userService.findByUsername(username);
             session.setAttribute("userId", user.getId());
             session.setAttribute("username", username);
@@ -125,12 +114,8 @@ public class AuthController {
         String username = (String) session.getAttribute("username");
         session.invalidate();
         SecurityContextHolder.clearContext();
-
         log.info("Пользователь {} вышел из системы", username);
-
-        return ResponseEntity.ok(Map.of(
-                "message", "Выход выполнен успешно"
-        ));
+        return ResponseEntity.ok(Map.of("message", "Выход выполнен успешно"));
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)

@@ -1,13 +1,10 @@
 package com.jarvis.Model.DTO;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 @Data
 public class UserDTO {
     private Long id;
-
     @NotBlank(message = "Имя пользователя обязательно")
     private String username;
 

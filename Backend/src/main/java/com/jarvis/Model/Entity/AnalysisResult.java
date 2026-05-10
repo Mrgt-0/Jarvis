@@ -1,8 +1,9 @@
 package com.jarvis.Model.Entity;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.*;
 
 @Entity
 @Table(name = "analysis_results")
@@ -21,18 +22,26 @@ public class AnalysisResult {
             joinColumns = @JoinColumn(name = "analysis_result_id")
     )
     @Column(name = "class_name")
-    private List<String> classNames;
+    private List<String> classNames = new ArrayList<>();
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "analysis_id")
-    private List<CodeProblem> problems;
+    @OneToMany(mappedBy = "analysisResult", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CodeProblem> problems = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(
+            name = "analysis_explanations",
+            joinColumns = @JoinColumn(name = "analysis_result_id")
+    )
+    @Column(name = "explanation_text")
+    private List<String> aiExplanations = new ArrayList<>();
 
     private Boolean success;
     private String errorMessage;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime analysisTime;
     private Integer problemCount;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 }

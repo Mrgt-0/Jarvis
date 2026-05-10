@@ -6,7 +6,6 @@ import com.jarvis.Service.AnalysisService;
 import com.jarvis.Service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,17 +18,35 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 @RestController
 @RequestMapping("/api/analysis")
 @RequiredArgsConstructor
-@Tag(name = "Анализ кода", description = "API для статического анализа Java кода")
 public class AnalysisController {
     private final AnalysisService analysisService;
     private final UserService userService;
 
-    @Operation(summary = "Анализировать Java файл")
+    @PostMapping(value = "/saveAnalysisResult")
+    public ResponseEntity<?>  saveAnalysisResult(@RequestBody AnalysisResultDTO dto) {
+        analysisService.saveAnalysisResult(dto);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping(value = "/history")
+    public ResponseEntity<List<AnalysisResultDTO>> getAnalysisHistory(HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        return ResponseEntity.ok(analysisService.getAnalysisHistory(userId));
+    }
+
+    @DeleteMapping(value = "/deleteAnalysisResult/{id}")
+    public ResponseEntity<?> deleteAnalysisResult(@PathVariable("id") Long id) {
+        analysisService.deleteAnalysisResult(id);
+        log.info("Analysis result {} deleted successfully", id);
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping(value = "/file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> analyzeFile(
             @RequestParam("file") MultipartFile file,
@@ -46,7 +63,6 @@ public class AnalysisController {
                                 "message", "Пожалуйста, войдите в систему перед анализом файлов"
                         ));
             }
-
             User user;
             try {
                 user = userService.getUserByUserId(userId);
@@ -56,20 +72,17 @@ public class AnalysisController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Map.of("error", "Пользователь не найден"));
             }
-
             if (file.isEmpty()) {
                 return ResponseEntity.badRequest()
                         .body(Map.of("error", "Файл пустой"));
             }
-
-            if (!file.getOriginalFilename().endsWith(".java")) {
+            if (!Objects.requireNonNull(file.getOriginalFilename()).endsWith(".java")) {
                 return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
                         .body(Map.of("error", "Только .java файлы поддерживаются"));
             }
             String sourceCode = new String(file.getBytes(), StandardCharsets.UTF_8);
             AnalysisResultDTO result = analysisService.analyzeJavaFile(sourceCode, file.getOriginalFilename(), user);
             return ResponseEntity.ok(result);
-
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Требуется аутентификация"));
@@ -89,10 +102,8 @@ public class AnalysisController {
     public ResponseEntity<?> analyzeArchive(
             @Parameter(description = "ZIP архив с Java файлами", required = true)
             @RequestParam("file") MultipartFile zipFile,
-
             @Parameter(description = "Название проекта", required = false)
             @RequestParam(value = "projectName", required = false, defaultValue = "default") String projectName,
-
             HttpSession session) {
 
         log.info("=== НАЧАЛО АНАЛИЗА АРХИВА ===");
@@ -116,22 +127,21 @@ public class AnalysisController {
             if (zipFile.isEmpty()) {
                 log.warn("Передан пустой файл");
                 return ResponseEntity.badRequest()
-                        .body(List.of(AnalysisResultDTO.error("archive.zip", "Файл пустой")));
+                        .body("Файл пустой");
             }
 
             String filename = zipFile.getOriginalFilename();
             if (filename == null) {
                 log.warn("Имя файла отсутствует");
                 return ResponseEntity.badRequest()
-                        .body(List.of(AnalysisResultDTO.error("unknown.zip", "Имя файла отсутствует")));
+                        .body("Имя файла отсутствует");
             }
 
             if (!filename.toLowerCase().endsWith(".zip")) {
                 log.warn("Неподдерживаемый формат файла: {}", filename);
                 return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
-                        .body(List.of(AnalysisResultDTO.error(filename, "Только ZIP архивы поддерживаются")));
+                        .body("Только ZIP архивы поддерживаются");
             }
-
             log.info("Начало обработки архива: {} (размер: {} байт)", filename, zipFile.getSize());
             byte[] zipData = zipFile.getBytes();
             log.info("Прочитано {} байт из архива", zipData.length);
@@ -141,20 +151,15 @@ public class AnalysisController {
             request.setArchiveName(filename);
             request.setZipData(zipData);
             request.setUser(user);
-
             log.info("Вызов сервиса анализа архива...");
             List<AnalysisResultDTO> results = analysisService.analyzeZipArchive(request);
             log.info("Сервис вернул {} результатов", results.size());
-
             return ResponseEntity.ok(results);
 
         } catch (IOException e) {
             log.error("Ошибка чтения файла: {}", e.getMessage());
             return ResponseEntity.badRequest()
-                    .body(List.of(AnalysisResultDTO.error(
-                            zipFile != null ? zipFile.getOriginalFilename() : "unknown.zip",
-                            "Ошибка чтения файла: " + e.getMessage()
-                    )));
+                    .body("Ошибка чтения файла");
         } catch (RuntimeException e) {
             log.error("Ошибка аутентификации: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -162,10 +167,7 @@ public class AnalysisController {
         } catch (Exception e) {
             log.error("Критическая ошибка при анализе архива: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(List.of(AnalysisResultDTO.error(
-                            zipFile != null ? zipFile.getOriginalFilename() : "unknown.zip",
-                            "Критическая ошибка сервера: " + e.getClass().getSimpleName()
-                    )));
+                    .body("Критическая ошибка сервера");
         }
     }
 }

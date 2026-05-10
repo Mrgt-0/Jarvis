@@ -1,5 +1,4 @@
 package com.jarvis.Model.Mapper;
-
 import com.jarvis.Model.DTO.UserDTO;
 import com.jarvis.Model.Entity.User;
 import org.mapstruct.Mapper;
